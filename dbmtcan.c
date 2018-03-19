@@ -1,4 +1,4 @@
-lude <stdio.h>
+nclude <stdio.h>
 #include <stdlib.h>
 #include <math.h>
 #include <pthread.h>
@@ -26,10 +26,15 @@ int main(int argc, char *argv[]){
 	double EPSmin=0;
 	tharg2= 2*tharg;
 	
-	pthread_t thread1, thread2;
+	pthread_t tid[1];
 	int iret1, iret2;
-
-
+/*	
+    for (int i = 0; i < 2; i++) {
+        pthread_create(&tid[i], NULL, routine, NULL);
+    }
+    for (int i = 0; i < 2; i++)
+       pthread_join(tid[i], NULL);
+*/
 	memory = calloc(tharg2, sizeof(double));
 	printf("arg3= %d\n",tharg);
         if(argc!=4)
@@ -91,7 +96,7 @@ int main(int argc, char *argv[]){
 	        jobptr->jobstorage = memory;
 	        jobptr->EpsMin = EPSmin;
 	        jobptr->elements = tharg2;
-		iret1 = pthread_create( &thread1, NULL, scann, jobptr);
+		iret1 = pthread_create( &tid[0], NULL, scann, jobptr);
         	if(iret1)
         	{
                 	fprintf(stderr, "Error - pthread_create() return code: %d\n",iret1);
@@ -99,11 +104,14 @@ int main(int argc, char *argv[]){
         	}
 	}
 
+	pthread_join(tid[0], NULL);
 	puts("scan complete");	
+
         fclose(outPtr); //closes write file
 	fclose(inPtr);
-//	free (memory);
-        return 0;
+	free (memory);
+        free (jobptr);
+	return 0;
 }
 
 
@@ -157,7 +165,7 @@ void* scann(void *jobs)
 	int sizes=jobptr2->elements;
 	
 	printf("storage2= %.02lf\n",*storage2);
-	double x,y,x2,y2,distance,z;
+	double x,y,x2,y2,distance,z, tempy, tempx;
         int i;
 	x=*storage2;
         printf("%.02f\n",x);
@@ -170,8 +178,9 @@ void* scann(void *jobs)
                 printf("%.02f\n",x2);
 		y2=*(storage2+(i+1));
                 printf("%.02f\n",y2);
-
-                z= y*y2+x*x2;
+		tempy= (y2-y);
+		tempx= (x2-x);
+                z= tempy*tempy+tempx*tempx;
                 printf("%.02f\n",z);
                 distance = sqrt(z);
                 printf("%.02f\n",distance);
@@ -188,4 +197,3 @@ void* scann(void *jobs)
 	free(jobs);	
 	fclose(fiptr); //closes write file
 }	
-i
